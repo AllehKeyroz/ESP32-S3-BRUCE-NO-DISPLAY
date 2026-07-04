@@ -1,0 +1,12 @@
+﻿.pio/
+.pioenvs/
+.piolibdeps/
+__pycache__/
+*.pyc
+*.swp
+*.swo
+.vscode/
+.DS_Store
+Thumbs.db
+*.elf
+*.map
