@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Bruce Controller</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #0a0a0a;
+  color: #00ff41;
+  padding: 10px;
+  min-height: 100vh;
+}
+h1 { text-align: center; font-size: 1.4em; margin-bottom: 15px; border-bottom: 1px solid #00ff41; padding-bottom: 10px; }
+h2 { font-size: 1em; margin: 10px 0 5px; color: #00cc33; cursor: pointer; }
+h2:before { content: '▶ '; }
+h2.open:before { content: '▼ '; }
+.cat { border: 1px solid #1a3a1a; border-radius: 6px; margin-bottom: 8px; padding: 5px 10px; }
+.cat-content { display: none; }
+.cat-content.open { display: block; }
+.btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 4px; margin: 5px 0; }
+.btn { 
+  background: #0d1f0d; border: 1px solid #00ff41; color: #00ff41; padding: 8px 4px;
+  border-radius: 4px; cursor: pointer; font-size: 0.75em; text-align: center;
+  transition: 0.2s;
+}
+.btn:hover { background: #00ff41; color: #000; }
+.btn:active { background: #00cc33; }
+.btn.danger { border-color: #ff3333; color: #ff3333; }
+.btn.danger:hover { background: #ff3333; color: #000; }
+.form-row { display: flex; gap: 4px; margin: 3px 0; flex-wrap: wrap; align-items: center; }
+.form-row input, .form-row select {
+  background: #0d1f0d; border: 1px solid #1a3a1a; color: #00ff41; padding: 4px 6px;
+  border-radius: 3px; font-size: 0.75em; flex: 1; min-width: 60px;
+}
+.form-row input:focus { border-color: #00ff41; outline: none; }
+.form-row label { font-size: 0.7em; color: #008822; min-width: 30px; }
+.form-row .btn { flex: 0 0 auto; }
+#console {
+  background: #050505; border: 1px solid #1a3a1a; border-radius: 6px; padding: 8px;
+  margin-top: 10px; font-family: 'Courier New', monospace; font-size: 0.75em;
+  max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+}
+#console .info { color: #008822; }
+#console .ok { color: #00ff41; }
+#console .err { color: #ff3333; }
+#console .cmd { color: #ffff00; }
+#status-bar {
+  background: #0d1f0d; border: 1px solid #1a3a1a; border-radius: 4px;
+  padding: 5px 10px; margin-bottom: 10px; font-size: 0.7em;
+  display: flex; justify-content: space-between; flex-wrap: wrap;
+}
+#status-bar .connected { color: #00ff41; }
+#status-bar .disconnected { color: #ff3333; }
+input[type="text"], input[type="password"] {
+  background: #0d1f0d; border: 1px solid #1a3a1a; color: #00ff41;
+  padding: 6px; border-radius: 4px; font-size: 0.85em;
+}
+#login-form { max-width: 300px; margin: 50px auto; text-align: center; }
+#login-form input { width: 100%; margin: 5px 0; }
+#login-form .btn { width: 100%; padding: 10px; font-size: 0.9em; margin-top: 10px; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="login-form">
+  <h1>🔐 Bruce Controller</h1>
+  <input type="text" id="login-user" placeholder="Usuário" value="admin">
+  <input type="password" id="login-pass" placeholder="Senha" value="bruce">
+  <input type="text" id="login-ip" placeholder="IP do ESP32" value="192.168.4.1">
+  <div class="btn" onclick="doLogin()">Conectar</div>
+  <div style="font-size:0.7em;margin-top:10px;color:#666">Conecte no WiFi BruceNet (senha: brucenet)</div>
+</div>
+
+<div id="main-panel" class="hidden">
+  <div id="status-bar">
+    <span id="conn-status" class="disconnected">Desconectado</span>
+    <span id="conn-ip"></span>
+    <span class="btn" style="font-size:0.7em;padding:2px 8px" onclick="doLogout()">Sair</span>
+  </div>
+
+  <h1>🦈 Bruce - Painel de Ataques</h1>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">WiFi - Scanners</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('scanap')">Scan APs</div>
+        <div class="btn" onclick="cmd('scanall')">Scan All</div>
+        <div class="btn" onclick="cmd('sniffbeacon')">Sniff Beacon</div>
+        <div class="btn" onclick="cmd('sniffprobe')">Sniff Probe</div>
+        <div class="btn" onclick="cmd('sniffdeauth')">Sniff Deauth</div>
+        <div class="btn" onclick="cmd('sniffpmkid')">Sniff PMKID</div>
+        <div class="btn" onclick="cmd('sniffraw')">Raw Sniffer</div>
+        <div class="btn" onclick="cmd('pingscan')">Ping Scan</div>
+        <div class="btn" onclick="cmd('arpscan')">ARP Scan</div>
+        <div class="btn" onclick="cmd('packetcount')">Packet Count</div>
+        <div class="btn" onclick="cmd('sigmon')">Signal Monitor</div>
+        <div class="btn" onclick="cmd('mactrack')">MAC Track</div>
+      </div>
+      <div class="form-row">
+        <label>Port Scan:</label>
+        <select id="ps-type">
+          <option value="ssh">SSH</option>
+          <option value="telnet">Telnet</option>
+          <option value="dns">DNS</option>
+          <option value="http">HTTP</option>
+          <option value="smtp">SMTP</option>
+          <option value="https">HTTPS</option>
+          <option value="rdp">RDP</option>
+        </select>
+        <div class="btn" onclick="cmd('portscan -s ' + getSel('ps-type'))">Scan</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">WiFi - Ataques</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('beaconspam -r')">Beacon Random</div>
+        <div class="btn" onclick="cmd('beaconspam -l')">Beacon List</div>
+        <div class="btn" onclick="cmd('deauth -c')">Deauth Canal</div>
+        <div class="btn danger" onclick="cmd('deauth')">Deauth All</div>
+        <div class="btn" onclick="cmd('attack -t beacon -r')">Atk Beacon</div>
+        <div class="btn" onclick="cmd('attack -t deauth -c')">Atk Deauth</div>
+        <div class="btn" onclick="cmd('attack -t probe')">Probe Flood</div>
+        <div class="btn" onclick="cmd('attack -t rickroll')">Rick Roll</div>
+        <div class="btn" onclick="cmd('attack -t badmsg -c')">Bad MSG</div>
+        <div class="btn" onclick="cmd('karma')">Karma</div>
+      </div>
+      <div class="form-row">
+        <label>Canal:</label>
+        <input type="number" id="ch-val" min="1" max="14" value="1">
+        <div class="btn" onclick="cmd('channel -s ' + getVal('ch-val'))">Set</div>
+      </div>
+      <div class="form-row">
+        <label>SSID:</label>
+        <input type="text" id="ssid-name" placeholder="Nome da rede">
+        <div class="btn" onclick="cmd('ssid -a -n \"' + getVal('ssid-name') + '\"')">Add</div>
+      </div>
+      <div class="form-row">
+        <label>Evil Portal:</label>
+        <select id="ep-html">
+          <option value="portal.html">portal.html</option>
+        </select>
+        <div class="btn" onclick="cmd('evilportal -c start -w ' + getSel('ep-html'))">Iniciar</div>
+        <div class="btn danger" onclick="cmd('evilportal -c stop')">Parar</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">Bluetooth</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('blespam -t all')">Spam ALL</div>
+        <div class="btn" onclick="cmd('blespam -t sourapple')">iOS Apple</div>
+        <div class="btn" onclick="cmd('blespam -t applejuice')">iOS Juice</div>
+        <div class="btn" onclick="cmd('blespam -t samsung')">Samsung</div>
+        <div class="btn" onclick="cmd('blespam -t windows')">Windows</div>
+        <div class="btn" onclick="cmd('blespam -t google')">Google</div>
+        <div class="btn" onclick="cmd('blespam -t flipper')">Flipper</div>
+        <div class="btn" onclick="cmd('sniffbt')">Sniff BT</div>
+        <div class="btn" onclick="cmd('sniffbt -t airtag')">Sniff AirTag</div>
+        <div class="btn" onclick="cmd('sniffbt -t flipper')">Sniff Flipper</div>
+        <div class="btn" onclick="cmd('sniffbt -t flock')">Sniff Flock</div>
+        <div class="btn" onclick="cmd('sniffbt -t meta')">Sniff Meta</div>
+        <div class="btn" onclick="cmd('sniffskim')">Sniff Skimmers</div>
+        <div class="btn" onclick="cmd('spoofat')">Spoof AirTag</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">IR</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('ir rx 10')">Rx (10s)</div>
+        <div class="btn" onclick="cmd('ir rx raw 10')">Rx Raw (10s)</div>
+      </div>
+      <div class="form-row">
+        <label>Protocolo:</label>
+        <input type="text" id="ir-prot" value="NEC" style="flex:0.5">
+        <label>Addr:</label>
+        <input type="text" id="ir-addr" value="0">
+        <label>Valor:</label>
+        <input type="text" id="ir-val" value="0">
+        <div class="btn" onclick="cmd('ir tx ' + getVal('ir-prot') + ' ' + getVal('ir-addr') + ' ' + getVal('ir-val'))">Tx</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">RF / Sub-GHz</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('subghz rx 10')">Rx (10s)</div>
+        <div class="btn" onclick="cmd('rf rx raw 10')">Rx Raw (10s)</div>
+      </div>
+      <div class="form-row">
+        <label>Freq:</label>
+        <input type="text" id="rf-freq" value="433.92" style="flex:0.5">
+        <label>Valor:</label>
+        <input type="text" id="rf-val" value="">
+        <label>TE:</label>
+        <input type="text" id="rf-te" value="350" style="flex:0.3">
+        <div class="btn" onclick="cmd('subghz tx ' + getVal('rf-val') + ' ' + getVal('rf-freq') + ' ' + getVal('rf-te') + ' 3')">Tx</div>
+      </div>
+      <div class="form-row">
+        <label>Módulo RF:</label>
+        <select id="rf-mod">
+          <option value="0">Nenhum</option>
+          <option value="1">CC1101</option>
+        </select>
+        <div class="btn" onclick="cmd('settings rfModule ' + getSel('rf-mod'))">Set</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">WiFi - Rede</h2>
+    <div class="cat-content">
+      <div class="form-row">
+        <label>SSID:</label>
+        <input type="text" id="wifi-ssid">
+        <label>Senha:</label>
+        <input type="text" id="wifi-pass">
+        <div class="btn" onclick="cmd('wifi add \"' + getVal('wifi-ssid') + '\" \"' + getVal('wifi-pass') + '\"')">Add</div>
+      </div>
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('wifi on')">WiFi ON</div>
+        <div class="btn" onclick="cmd('wifi off')">WiFi OFF</div>
+        <div class="btn" onclick="cmd('webui')">WebUI AP</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat">
+    <h2 onclick="toggle(this)">Sistema</h2>
+    <div class="cat-content">
+      <div class="btn-grid">
+        <div class="btn" onclick="cmd('settings')">Config</div>
+        <div class="btn" onclick="cmd('help')">Help</div>
+        <div class="btn" onclick="cmd('info')">Info</div>
+        <div class="btn" onclick="cmd('power reboot')">Reboot</div>
+        <div class="btn danger" onclick="cmd('factory_reset')">Factory Reset</div>
+        <div class="btn" onclick="cmd('power off')">Desligar</div>
+        <div class="btn" onclick="cmd('power sleep')">Sleep</div>
+        <div class="btn" onclick="cmd('clock')">Relógio</div>
+        <div class="btn" onclick="cmd('i2c scan')">I2C Scan</div>
+      </div>
+      <div class="form-row">
+        <label>Comando:</label>
+        <input type="text" id="custom-cmd" placeholder="Digite qualquer comando..." style="flex:2">
+        <div class="btn" onclick="cmd(getVal('custom-cmd'))">Executar</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="color:#008822;cursor:default;border-top:1px solid #1a3a1a;padding-top:8px">💻 Console</h2>
+  <div id="console">
+    <span class="info">// Bruce Controller iniciado. Conecte para começar.</span>
+  </div>
+  <div style="display:flex;gap:5px;margin-top:5px">
+    <div class="btn" onclick="clearConsole()" style="flex:1">Limpar Console</div>
+    <div class="btn" onclick="scrollToBottom()" style="flex:1">Rolar para fim</div>
+  </div>
+</div>
+
+<script>
+let baseUrl = '';
+let loggedIn = false;
+
+function getVal(id) { return document.getElementById(id).value; }
+function getSel(id) { return document.getElementById(id).value; }
+function log(msg, cls='info') { 
+  const c = document.getElementById('console');
+  c.innerHTML += '<span class="' + cls + '">' + msg + '</span>\n';
+  c.scrollTop = c.scrollHeight;
+}
+function clearConsole() { document.getElementById('console').innerHTML = ''; }
+function scrollToBottom() { const c = document.getElementById('console'); c.scrollTop = c.scrollHeight; }
+function toggle(el) { 
+  const content = el.nextElementSibling;
+  content.classList.toggle('open');
+  el.classList.toggle('open');
+}
+
+async function api(method, path, body) {
+  const opts = { method, credentials: 'include' };
+  if (body) opts.body = body;
+  try {
+    const r = await fetch(baseUrl + path, opts);
+    const text = await r.text();
+    return { ok: r.ok, status: r.status, text };
+  } catch(e) {
+    return { ok: false, status: 0, text: 'Erro de conexão: ' + e.message };
+  }
+}
+
+async function cmd(command) {
+  if (!loggedIn) { log('Desconectado. Faça login primeiro.', 'err'); return; }
+  log('$ ' + command, 'cmd');
+  const r = await api('POST', '/cm', 'cmnd=' + encodeURIComponent(command));
+  if (r.ok) log(r.text, 'ok');
+  else log('Erro (' + r.status + '): ' + r.text, 'err');
+}
+
+async function doLogin() {
+  const user = getVal('login-user');
+  const pass = getVal('login-pass');
+  const ip = getVal('login-ip');
+  baseUrl = 'http://' + ip;
+  
+  log('Conectando a ' + baseUrl + '...');
+  
+  const r = await api('POST', '/login', 'username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass));
+  
+  if (r.ok && !r.text.includes('failed')) {
+    loggedIn = true;
+    document.getElementById('login-form').classList.add('hidden');
+    document.getElementById('main-panel').classList.remove('hidden');
+    document.getElementById('conn-status').textContent = 'Conectado';
+    document.getElementById('conn-status').className = 'connected';
+    document.getElementById('conn-ip').textContent = ip;
+    log('Login OK! Painel pronto.', 'ok');
+    log('Digite comandos ou clique nos botões.', 'info');
+  } else {
+    log('Falha no login: ' + r.text, 'err');
+  }
+}
+
+async function doLogout() {
+  await api('GET', '/logout');
+  loggedIn = false;
+  document.getElementById('main-panel').classList.add('hidden');
+  document.getElementById('login-form').classList.remove('hidden');
+  log('Desconectado.', 'info');
+}
+
+// Auto-abrir primeiras categorias
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.cat h2').forEach((el, i) => {
+    if (i < 3) { el.click(); }
+  });
+});
+</script>
+</body>
+</html>
