@@ -24,6 +24,7 @@ const int default_webserverporthttp = 80;
 IPAddress AP_GATEWAY(172, 0, 0, 1); // Gateway
 
 AsyncWebServer *server = nullptr; // initialise webserver
+extern String lastMenuOutput;
 const char *host = "bruce";
 String uploadFolder = "";
 static bool mdnsRunning = false;
@@ -418,6 +419,13 @@ void configureWebServer() {
         }
     });
 
+    // Menu state
+    server->on("/menu", HTTP_GET, [](AsyncWebServerRequest *request) {
+        if (checkUserWebAuth(request, true)) {
+            request->send(200, "text/plain", lastMenuOutput);
+        }
+    });
+
     // Redirect old name
     server->on("/BruceController.html", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->redirect("/panel");
@@ -582,6 +590,9 @@ void configureWebServer() {
                     if (!LongPress) vTaskDelay(pdMS_TO_TICKS(190));
                     else vTaskDelay(pdMS_TO_TICKS(50));
                 }
+                // Update menu for the panel
+                extern void optionsList();
+                optionsList();
             } else {
                 if (parseSerialCommand(cmnd, false)) {
                     request->send(200, "text/plain", "command " + cmnd + " queued");
