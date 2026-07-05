@@ -3,89 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Bruce Panel</title>
+<title>Bruce Cmd</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
-body{background:#111;color:#0f0;font-family:'Courier New',monospace;padding:8px;max-width:480px;margin:0 auto;min-height:100vh}
-h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
-#st{text-align:center;font-size:0.45em;color:#070;margin-bottom:4px}
-#st.ataque{color:#f00;animation:pisca .8s infinite}
-@keyframes pisca{50%{opacity:0}}
+body{background:#111;color:#0f0;font-family:'Courier New',monospace;padding:6px;max-width:480px;margin:0 auto;min-height:100vh}
+h1{text-align:center;font-size:0.75em;margin:2px 0;letter-spacing:2px}
+
+#st{display:flex;justify-content:space-between;font-size:0.4em;color:#070;margin:1px 0;padding:0 2px}
 
 #tela{
-  background:#001800;border:2px solid #0f0;border-radius:4px;padding:10px 8px;
-  min-height:170px;max-height:250px;overflow-y:auto;font-size:0.68em;line-height:1.5;
-  white-space:pre-wrap;font-family:'Courier New',monospace;color:#0f0;margin-bottom:3px;
-  scrollbar-width:thin;scrollbar-color:#0f0 #001800
+  background:#001800;border:2px solid #0f0;border-radius:4px;padding:6px;
+  min-height:140px;max-height:220px;overflow:hidden;font-size:0;
+  margin-bottom:2px;position:relative;touch-action:manipulation;cursor:pointer
 }
+#tela canvas{width:100%;height:100%;image-rendering:pixelated}
 #tela.ataque{border-color:#f00}
-#tela::-webkit-scrollbar{width:3px}
-#tela::-webkit-scrollbar-track{background:#001800}
-#tela::-webkit-scrollbar-thumb{background:#0f0;border-radius:2px}
-.sel{background:#0f0;color:#000;font-weight:bold;display:block}
-.tit{color:#0f0;font-weight:bold;font-size:1.05em}
-.sep{color:#030;display:block}
-.msg{color:#ff0;font-size:0.8em;display:block;margin:2px 0;animation:pisca .8s infinite}
-.warn{color:#fa0;font-size:0.55em;display:block;margin-top:2px}
+#tela .overlay{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2}
+@keyframes pisca{50%{opacity:0}}
 
-#stop-bar{display:none;background:#300;border:1px solid #f00;border-radius:4px;padding:6px;margin:4px 0;text-align:center}
+#stop-bar{display:none;background:#300;border:1px solid #f00;border-radius:3px;padding:4px;margin:2px 0;text-align:center}
 #stop-bar.ativo{display:block}
-.stopbtn{background:#500;border:2px solid #f00;color:#f00;padding:8px 20px;border-radius:4px;cursor:pointer;font-size:0.8em;font-weight:bold;touch-action:manipulation}
+.stopbtn{background:#500;border:2px solid #f00;color:#f00;padding:6px 16px;border-radius:3px;cursor:pointer;font-size:0.7em;font-weight:bold}
 .stopbtn:active{background:#f00;color:#000}
 
-.dpad{display:flex;flex-direction:column;align-items:center;gap:2px;margin:3px 0}
-.dr{display:flex;gap:4px;justify-content:center;align-items:center}
-.dbtn{
-  width:50px;height:50px;border-radius:50%;border:2px solid #0f0;
-  background:#050;color:#0f0;font-size:1.1em;display:flex;align-items:center;
-  justify-content:center;cursor:pointer;touch-action:manipulation
-}
+.msg{color:#ff0;font-size:0.65em;text-align:center;animation:pisca .8s infinite;margin:2px 0}
+.warn{color:#fa0;font-size:0.5em;text-align:center}
+
+#dpad{display:flex;flex-direction:column;align-items:center;gap:1px;margin:2px 0}
+.dr{display:flex;gap:3px;justify-content:center;align-items:center}
+.dbtn{width:44px;height:44px;border-radius:50%;border:2px solid #0f0;background:#050;color:#0f0;font-size:1em;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .dbtn:active{background:#0f0;color:#000;transform:scale(0.92)}
-.dbtn.s{width:40px;height:40px;font-size:0.85em}
-.dbtn.des{opacity:0.3;pointer-events:none}
-.dlbl{font-size:0.4em;color:#060;text-align:center;margin-top:1px}
+.dbtn.s{width:36px;height:36px;font-size:0.8em}
+.dbtn.des{opacity:0.2;pointer-events:none}
+.dlbl{font-size:0.35em;color:#060;text-align:center}
 
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:3px 0}
-.q{
-  background:#050;border:1px solid #090;color:#0f0;padding:5px 2px;border-radius:3px;
-  cursor:pointer;font-size:0.5em;text-align:center;touch-action:manipulation
-}
-.q:active{background:#0f0;color:#000}
-.q.des{opacity:0.3;pointer-events:none}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin:2px 0}
+.t{background:#050;border:1px solid #090;color:#0f0;padding:4px 1px;border-radius:2px;cursor:pointer;font-size:0.48em;text-align:center}
+.t:active{background:#0f0;color:#000}
+.t.des{opacity:0.3;pointer-events:none}
+.t.preset{background:#003000;border-color:#0c0;font-weight:bold}
 
-#login{max-width:230px;margin:50px auto;text-align:center}
-#login input{width:100%;margin:3px 0;background:#050;border:1px solid #090;color:#0f0;padding:6px;border-radius:3px;font-size:0.65em;font-family:'Courier New',monospace}
-#login .lb{width:100%;padding:7px;margin-top:4px;background:#050;border:1px solid #0f0;color:#0f0;border-radius:3px;cursor:pointer;font-size:0.7em}
-#login .lb:active{background:#0f0;color:#000}
+#console{background:#000;border:1px solid #030;border-radius:2px;padding:2px 4px;font-size:0.5em;max-height:70px;overflow-y:auto;white-space:pre-wrap;margin-top:2px;color:#070}
+
+#login{max-width:220px;margin:40px auto;text-align:center}
+#login input{width:100%;margin:2px 0;background:#050;border:1px solid #090;color:#0f0;padding:5px;border-radius:3px;font-size:0.6em;font-family:'Courier New',monospace}
+#login .lb{width:100%;padding:6px;margin-top:3px;background:#050;border:1px solid #0f0;color:#0f0;border-radius:3px;cursor:pointer;font-size:0.65em}
 .hide{display:none!important}
 </style>
 </head>
 <body>
 
 <div id="login">
-  <h1>BRUCE PANEL</h1>
+  <h1>BRUCE CMD</h1>
   <input type="text" id="lu" value="admin">
   <input type="password" id="lp" value="bruce">
   <input type="text" id="li" value="192.168.3.113">
   <div class="lb" onclick="entrar()">CONECTAR</div>
-  <div style="font-size:0.45em;color:#060;margin-top:8px">Conectado na rede local: use IP 192.168.3.113<br>Conectado no BruceNet: use 172.0.0.1</div>
+  <div style="font-size:0.4em;color:#060;margin-top:4px">KEYROZ: 192.168.3.113 | BruceNet: 172.0.0.1</div>
 </div>
 
 <div id="main" class="hide">
-  <h1>BRUCE</h1>
-  <div id="st">Conectado | Navegue nos menus</div>
-  
-  <div id="tela">Use OK para comecar</div>
-  
-  <div id="stop-bar">
-    <div class="stopbtn" onclick="parar()">PARAR ATAQUE</div>
+  <h1>BRUCE CMD</h1>
+  <div id="st"><span id="netSt">Desconectado</span><span id="ipSt"></span><span id="atkSt"></span></div>
+
+  <div id="tela" onclick="clickTela(event)">
+    <canvas id="cv"></canvas>
   </div>
-  
-  <div class="dpad" id="dpad">
+
+  <div id="msgArea"></div>
+
+  <div id="stop-bar"><div class="stopbtn" onclick="parar()">PARAR ATAQUE</div></div>
+
+  <div id="dpad">
     <div class="dr">
-      <div style="width:50px"></div>
+      <div style="width:44px"></div>
       <div><div class="dbtn" id="bup" onclick="nv('up')">&#9650;</div><div class="dlbl">CIMA</div></div>
-      <div style="width:50px"></div>
+      <div style="width:44px"></div>
     </div>
     <div class="dr">
       <div><div class="dbtn s" id="besc" onclick="nv('esc')">&#9664;</div><div class="dlbl">VOLT</div></div>
@@ -93,22 +86,28 @@ h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
       <div><div class="dbtn s" id="bnext" onclick="nv('next')">&#9654;</div><div class="dlbl">PROX</div></div>
     </div>
     <div class="dr">
-      <div style="width:50px"></div>
+      <div style="width:44px"></div>
       <div><div class="dbtn" id="bdown" onclick="nv('down')">&#9660;</div><div class="dlbl">BAIXO</div></div>
-      <div style="width:50px"></div>
+      <div style="width:44px"></div>
     </div>
   </div>
 
-  <div class="quick">
-    <div class="q" id="qwifi" onclick="ir(0,0)">WiFi<br><span style="color:#080">Conectar</span></div>
-    <div class="q" id="qble" onclick="ir(1,5)">BLE Spam<br><span style="color:#080">ALL</span></div>
-    <div class="q" id="qrfid" onclick="ir(8,0)">RFID<br><span style="color:#080">Ler</span></div>
-    <div class="q" id="qweb" onclick="window.open(b+'/','_blank')">WebUI<br><span style="color:#080">Arquivos</span></div>
+  <div class="tools" id="tools">
+    <div class="t" onclick="ir(0,2,1)">WiFi<br><span style="color:#080">Atks</span></div>
+    <div class="t" onclick="ir(1,5)">BLE<br><span style="color:#080">Spam ALL</span></div>
+    <div class="t" onclick="ir(0,0)">WiFi<br><span style="color:#080">Ligar</span></div>
+    <div class="t" onclick="nvSel()">Refresh<br><span style="color:#080">Tela</span></div>
+    <div class="t preset" onclick="executar('Preset 1: Scan + Deauth','nav select','nav down','nav down','nav select','nav down','nav down','nav select')">Scan<br><span style="color:#0c0">Auto</span></div>
+    <div class="t preset" onclick="executar('Preset 2: BLE Spam All','nav esc','nav esc','nav esc','nav down','nav select','nav down','nav down','nav down','nav down','nav down','nav select')">BLE<br><span style="color:#0c0">Rapido</span></div>
+    <div class="t" onclick="executar('Beacon Random','nav esc','nav esc','nav esc','nav select','nav down','nav down','nav select','nav down','nav dow','nav select','nav down','nav select')">Beacon<br><span style="color:#080">Spam</span></div>
+    <div class="t" onclick="window.open(b+'/','_blank')">WebUI<br><span style="color:#080">Original</span></div>
   </div>
+
+  <div id="console">Conectado. Clique na tela ou use os botoes.</div>
 </div>
 
 <script>
-var b='',atacando=false
+var b='',atacando=false,hist=[]
 
 function id(n){return document.getElementById(n)}
 
@@ -125,78 +124,116 @@ async function entrar(){
   if(r.ok){
     id('login').classList.add('hide')
     id('main').classList.remove('hide')
-    atualizar()
+    nvSel()
   }
 }
 
-function setAtaque(estado){
-  atacando=estado
-  var tela=id('tela'),st=id('st'),stopb=id('stop-bar')
-  if(estado){
-    tela.classList.add('ataque')
-    st.classList.add('ataque')
-    st.textContent='! ATAQUE EM ANDAMENTO !'
-    stopb.classList.add('ativo')
-  }else{
-    tela.classList.remove('ataque')
-    st.classList.remove('ataque')
-    st.textContent='Conectado | Navegue nos menus'
-    stopb.classList.remove('ativo')
-  }
-  // Desabilitar botoes durante ataque
-  var bts=['bup','bdown','bsel','besc','bnext']
-  for(var b of bts) id(b).classList.toggle('des',estado)
-  var qs=['qwifi','qble','qrfid','qweb']
-  for(var q of qs) id(q).classList.toggle('des',estado)
+function log(m,c){var e=id('console');e.innerHTML+='<span style="color:'+(c||'#070')+'">'+m+'</span>\n';e.scrollTop=e.scrollHeight}
+function limpar(){id('console').innerHTML=''}
+
+function setAtk(est){
+  atacando=est
+  var t=id('tela'),sb=id('stop-bar'),st=id('atkSt'),ma=id('msgArea')
+  t.classList.toggle('ataque',est)
+  sb.classList.toggle('ativo',est)
+  st.textContent=est?'!ATAQUE!':''
+  var bt=['bup','bdown','bsel','besc','bnext']
+  for(var b of bt)id(b).classList.toggle('des',est)
+  document.querySelectorAll('.t').forEach(function(e){e.classList.toggle('des',est)})
+  if(!est)ma.innerHTML=''
 }
 
 async function parar(){
-  setAtaque(false)
-  for(var i=0;i<5;i++) await api('/cm','POST','cmnd=nav esc')
-  id('tela').innerHTML='Ataque parado. Use OK para navegar.'
+  setAtk(false)
+  for(var i=0;i<6;i++)await api('/cm','POST','cmnd=nav esc')
+  nvSel()
 }
 
-async function atualizar(){
-  var r=await api('/menu','GET')
-  if(!r.ok||!r.txt) return
-  var txt=r.txt
-  var msgMatch=txt.match(/MESSAGE:\s*(.+)/)
-  if(msgMatch){
-    setAtaque(true)
-    id('tela').innerHTML='<span class="msg">>> '+msgMatch[1]+' <<</span>\n<span class="warn">Redes com seguranca antiga (WEP/TKIP)</span>\n\n<span class="warn">Redes aparecem no Wi-Fi do iPhone\nmas com icone de alerta - normal.</span>\n\n<span class="warn">Aperte PARAR ATAQUE para encerrar.</span>'
-    return
+// getscreen render
+async function renderTela(){
+  var r=await api('/getscreen','GET')
+  if(!r.ok||!r.txt||r.txt.length<10)return
+  // Parse binary log and render on canvas
+  // For now: draw raw bytes as pixels
+  var cv=id('cv'),ctx=cv.getContext('2d')
+  var data=new Uint8Array(r.txt.length)
+  for(var i=0;i<r.txt.length;i++)data[i]=r.txt.charCodeAt(i)
+  // Find screen info in the log
+  var w=320,h=240
+  // Scan for SCREEN_INFO packet (0xAA + size + 99)
+  for(var i=0;i<data.length-8;i++){
+    if(data[i]==0xAA&&data[i+2]==99){
+      w=(data[i+3]<<8)|data[i+4]
+      h=(data[i+5]<<8)|data[i+6]
+      break
+    }
   }
-  if(atacando) setAtaque(false)
-  
-  var linhas=txt.split('\n'),titulo='',items=[]
-  for(var l of linhas){
-    l=l.trim()
-    if(l.startsWith('Actual Menu:')){titulo=l.split(':')[1].trim();continue}
-    if(l.match(/^[>\s]*\d+\s*-/)) items.push(l)
-  }
-  var h=''
-  if(titulo) h+='<span class="tit">'+titulo+'</span>\n<span class="sep">'+'-'.repeat(Math.min(titulo.length,25))+'</span>\n'
-  for(var m of items){
-    if(m.startsWith('>')) h+='<span class="sel">'+m.replace(/^>\s*/,'')+'</span>'
-    else h+='  '+m+'\n'
-  }
-  if(titulo||items.length) id('tela').innerHTML=h||'[aguardando...]'
+  cv.width=w;cv.height=h
+  // Clear
+  ctx.fillStyle='#001800';ctx.fillRect(0,0,w,h)
+  // Draw basic representation
+  ctx.fillStyle='#0f0'
+  ctx.font='10px monospace'
+  ctx.fillText('Menu: '+h+'x'+w,4,12)
+  ctx.font='8px monospace'
+  ctx.fillText('Log: '+data.length+' bytes',4,24)
 }
 
 async function nv(dir){
-  if(atacando) return
+  if(atacando)return
   await api('/cm','POST','cmnd=nav '+dir)
-  await atualizar()
+  if(dir){hist.push('nav '+dir);if(hist.length>10)hist.shift()}
+  await Promise.all([renderTela(),atualizarMenu()])
 }
 
-async function ir(main,sub){
-  if(atacando) return
-  for(var i=0;i<6;i++) await api('/cm','POST','cmnd=nav esc')
-  for(var i=0;i<main;i++) await api('/cm','POST','cmnd=nav down')
+async function nvSel(){
+  if(atacando)return
+  await Promise.all([renderTela(),atualizarMenu()])
+}
+
+async function atualizarMenu(){
+  var r=await api('/menu','GET')
+  if(!r.ok||!r.txt)return
+  var txt=r.txt
+  var msgM=txt.match(/MESSAGE:\s*(.+)/)
+  if(msgM){
+    setAtk(true)
+    id('msgArea').innerHTML='<div class="msg">>> '+msgM[1]+' <<</div><div class="warn">Redes com alerta de seguranca=normal</div>'
+    return
+  }
+  if(atacando)setAtk(false)
+}
+
+async function ir(main,sub,extra){
+  if(atacando)return
+  for(var i=0;i<6;i++)await api('/cm','POST','cmnd=nav esc')
+  for(var i=0;i<main;i++)await api('/cm','POST','cmnd=nav down')
   await api('/cm','POST','cmnd=nav select')
-  for(var i=0;i<sub;i++) await api('/cm','POST','cmnd=nav down')
+  for(var i=0;i<sub;i++)await api('/cm','POST','cmnd=nav down')
   await api('/cm','POST','cmnd=nav select')
-  await atualizar()
+  if(extra)for(var i=0;i<extra;i++)await api('/cm','POST','cmnd=nav down')
+  await Promise.all([renderTela(),atualizarMenu()])
+}
+
+async function executar(nome){
+  log('>>> '+nome,'#0f0')
+  setAtk(true)
+  id('msgArea').innerHTML='<div class="msg">>> EXECUTANDO: '+nome+' <<</div>'
+  var args=Array.prototype.slice.call(arguments,1)
+  for(var i=0;i<args.length;i++){
+    await api('/cm','POST','cmnd='+args[i])
+    await new Promise(function(r){setTimeout(r,400)})
+  }
+  await Promise.all([renderTela(),atualizarMenu()])
+}
+
+function clickTela(ev){
+  if(atacando)return
+  var rect=id('tela').getBoundingClientRect()
+  var x=ev.clientX-rect.left,y=ev.clientY-rect.top
+  var w=rect.width,h=rect.height,th=w/4
+  if(y<th*3){nv(y<th?'up':y>h-th?'down':'select')}
+  else{nv(x<w/2?'esc':'select')}
 }
 </script>
 </body>
