@@ -9,19 +9,29 @@
 body{background:#111;color:#0f0;font-family:'Courier New',monospace;padding:8px;max-width:480px;margin:0 auto;min-height:100vh}
 h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
 #st{text-align:center;font-size:0.45em;color:#070;margin-bottom:4px}
+#st.ataque{color:#f00;animation:pisca .8s infinite}
+@keyframes pisca{50%{opacity:0}}
 
 #tela{
   background:#001800;border:2px solid #0f0;border-radius:4px;padding:10px 8px;
   min-height:170px;max-height:250px;overflow-y:auto;font-size:0.68em;line-height:1.5;
-  white-space:pre-wrap;font-family:'Courier New',monospace;color:#0f0;margin-bottom:5px;
+  white-space:pre-wrap;font-family:'Courier New',monospace;color:#0f0;margin-bottom:3px;
   scrollbar-width:thin;scrollbar-color:#0f0 #001800
 }
+#tela.ataque{border-color:#f00}
 #tela::-webkit-scrollbar{width:3px}
 #tela::-webkit-scrollbar-track{background:#001800}
 #tela::-webkit-scrollbar-thumb{background:#0f0;border-radius:2px}
 .sel{background:#0f0;color:#000;font-weight:bold;display:block}
 .tit{color:#0f0;font-weight:bold;font-size:1.05em}
 .sep{color:#030;display:block}
+.msg{color:#ff0;font-size:0.8em;display:block;margin:2px 0;animation:pisca .8s infinite}
+.warn{color:#fa0;font-size:0.55em;display:block;margin-top:2px}
+
+#stop-bar{display:none;background:#300;border:1px solid #f00;border-radius:4px;padding:6px;margin:4px 0;text-align:center}
+#stop-bar.ativo{display:block}
+.stopbtn{background:#500;border:2px solid #f00;color:#f00;padding:8px 20px;border-radius:4px;cursor:pointer;font-size:0.8em;font-weight:bold;touch-action:manipulation}
+.stopbtn:active{background:#f00;color:#000}
 
 .dpad{display:flex;flex-direction:column;align-items:center;gap:2px;margin:3px 0}
 .dr{display:flex;gap:4px;justify-content:center;align-items:center}
@@ -32,6 +42,7 @@ h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
 }
 .dbtn:active{background:#0f0;color:#000;transform:scale(0.92)}
 .dbtn.s{width:40px;height:40px;font-size:0.85em}
+.dbtn.des{opacity:0.3;pointer-events:none}
 .dlbl{font-size:0.4em;color:#060;text-align:center;margin-top:1px}
 
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin:3px 0}
@@ -40,6 +51,7 @@ h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
   cursor:pointer;font-size:0.5em;text-align:center;touch-action:manipulation
 }
 .q:active{background:#0f0;color:#000}
+.q.des{opacity:0.3;pointer-events:none}
 
 #login{max-width:230px;margin:50px auto;text-align:center}
 #login input{width:100%;margin:3px 0;background:#050;border:1px solid #090;color:#0f0;padding:6px;border-radius:3px;font-size:0.65em;font-family:'Courier New',monospace}
@@ -56,47 +68,47 @@ h1{text-align:center;font-size:0.8em;margin:3px 0;letter-spacing:2px;color:#0f0}
   <input type="password" id="lp" value="bruce">
   <input type="text" id="li" value="192.168.3.113">
   <div class="lb" onclick="entrar()">CONECTAR</div>
-  <div style="font-size:0.45em;color:#060;margin-top:8px">Conectado na KEYROZ: use IP 192.168.3.113<br>Conectado no BruceNet: use IP 172.0.0.1</div>
+  <div style="font-size:0.45em;color:#060;margin-top:8px">Conectado na rede local: use IP 192.168.3.113<br>Conectado no BruceNet: use 172.0.0.1</div>
 </div>
 
 <div id="main" class="hide">
   <h1>BRUCE</h1>
-  <div id="st">Conectado | Navegue pelos menus</div>
+  <div id="st">Conectado | Navegue nos menus</div>
   
-  <div id="tela">Pressione OK para comecar</div>
+  <div id="tela">Use OK para comecar</div>
   
-  <div class="dpad">
+  <div id="stop-bar">
+    <div class="stopbtn" onclick="parar()">PARAR ATAQUE</div>
+  </div>
+  
+  <div class="dpad" id="dpad">
     <div class="dr">
       <div style="width:50px"></div>
-      <div><div class="dbtn" onclick="nv('up')">&#9650;</div><div class="dlbl">CIMA</div></div>
+      <div><div class="dbtn" id="bup" onclick="nv('up')">&#9650;</div><div class="dlbl">CIMA</div></div>
       <div style="width:50px"></div>
     </div>
     <div class="dr">
-      <div><div class="dbtn s" onclick="nv('esc')">&#9664;</div><div class="dlbl">VOLT</div></div>
-      <div><div class="dbtn" onclick="nv('select')">OK</div><div class="dlbl">SEL</div></div>
-      <div><div class="dbtn s" onclick="nv('next')">&#9654;</div><div class="dlbl">PROX</div></div>
+      <div><div class="dbtn s" id="besc" onclick="nv('esc')">&#9664;</div><div class="dlbl">VOLT</div></div>
+      <div><div class="dbtn" id="bsel" onclick="nv('select')">OK</div><div class="dlbl">SEL</div></div>
+      <div><div class="dbtn s" id="bnext" onclick="nv('next')">&#9654;</div><div class="dlbl">PROX</div></div>
     </div>
     <div class="dr">
       <div style="width:50px"></div>
-      <div><div class="dbtn" onclick="nv('down')">&#9660;</div><div class="dlbl">BAIXO</div></div>
+      <div><div class="dbtn" id="bdown" onclick="nv('down')">&#9660;</div><div class="dlbl">BAIXO</div></div>
       <div style="width:50px"></div>
-    </div>
-    <div class="dr" style="margin-top:1px">
-      <div><div class="dbtn s" onclick="nv('nextpage')">&#9654;&#9654;</div><div class="dlbl">PROX PAG</div></div>
-      <div><div class="dbtn s" onclick="nv('prevpage')">&#9664;&#9664;</div><div class="dlbl">PAG ANT</div></div>
     </div>
   </div>
 
   <div class="quick">
-    <div class="q" onclick="ir(0,0)">WiFi<br><span style="color:#080">Acessar</span></div>
-    <div class="q" onclick="ir(1,5)">BLE Spam<br><span style="color:#080">ALL</span></div>
-    <div class="q" onclick="ir(8,0)">RFID<br><span style="color:#080">Ler</span></div>
-    <div class="q" onclick="window.open(b+'/','_blank')">WebUI<br><span style="color:#080">Arquivos</span></div>
+    <div class="q" id="qwifi" onclick="ir(0,0)">WiFi<br><span style="color:#080">Conectar</span></div>
+    <div class="q" id="qble" onclick="ir(1,5)">BLE Spam<br><span style="color:#080">ALL</span></div>
+    <div class="q" id="qrfid" onclick="ir(8,0)">RFID<br><span style="color:#080">Ler</span></div>
+    <div class="q" id="qweb" onclick="window.open(b+'/','_blank')">WebUI<br><span style="color:#080">Arquivos</span></div>
   </div>
 </div>
 
 <script>
-var b=''
+var b='',atacando=false
 
 function id(n){return document.getElementById(n)}
 
@@ -117,31 +129,68 @@ async function entrar(){
   }
 }
 
+function setAtaque(estado){
+  atacando=estado
+  var tela=id('tela'),st=id('st'),stopb=id('stop-bar')
+  if(estado){
+    tela.classList.add('ataque')
+    st.classList.add('ataque')
+    st.textContent='! ATAQUE EM ANDAMENTO !'
+    stopb.classList.add('ativo')
+  }else{
+    tela.classList.remove('ataque')
+    st.classList.remove('ataque')
+    st.textContent='Conectado | Navegue nos menus'
+    stopb.classList.remove('ativo')
+  }
+  // Desabilitar botoes durante ataque
+  var bts=['bup','bdown','bsel','besc','bnext']
+  for(var b of bts) id(b).classList.toggle('des',estado)
+  var qs=['qwifi','qble','qrfid','qweb']
+  for(var q of qs) id(q).classList.toggle('des',estado)
+}
+
+async function parar(){
+  setAtaque(false)
+  for(var i=0;i<5;i++) await api('/cm','POST','cmnd=nav esc')
+  id('tela').innerHTML='Ataque parado. Use OK para navegar.'
+}
+
 async function atualizar(){
   var r=await api('/menu','GET')
-  if(r.ok&&r.txt){
-    var txt=r.txt,h=''
-    var linhas=txt.split('\n'),titulo='',items=[]
-    for(var l of linhas){
-      l=l.trim()
-      if(l.startsWith('Actual Menu:')){titulo=l.split(':')[1].trim();continue}
-      if(l.match(/^[>\s]*\d+\s*-/)) items.push(l)
-    }
-    if(titulo) h+='<span class="tit">'+titulo+'</span>\n<span class="sep">'+'-'.repeat(Math.min(titulo.length,25))+'</span>\n'
-    for(var m of items){
-      if(m.startsWith('>')) h+='<span class="sel">'+(m.replace(/^>\s*/,''))+'</span>'
-      else h+='  '+m+'\n'
-    }
-    id('tela').innerHTML=h||'[aguardando...]'
+  if(!r.ok||!r.txt) return
+  var txt=r.txt
+  var msgMatch=txt.match(/MESSAGE:\s*(.+)/)
+  if(msgMatch){
+    setAtaque(true)
+    id('tela').innerHTML='<span class="msg">>> '+msgMatch[1]+' <<</span>\n<span class="warn">Redes com seguranca antiga (WEP/TKIP)</span>\n\n<span class="warn">Redes aparecem no Wi-Fi do iPhone\nmas com icone de alerta - normal.</span>\n\n<span class="warn">Aperte PARAR ATAQUE para encerrar.</span>'
+    return
   }
+  if(atacando) setAtaque(false)
+  
+  var linhas=txt.split('\n'),titulo='',items=[]
+  for(var l of linhas){
+    l=l.trim()
+    if(l.startsWith('Actual Menu:')){titulo=l.split(':')[1].trim();continue}
+    if(l.match(/^[>\s]*\d+\s*-/)) items.push(l)
+  }
+  var h=''
+  if(titulo) h+='<span class="tit">'+titulo+'</span>\n<span class="sep">'+'-'.repeat(Math.min(titulo.length,25))+'</span>\n'
+  for(var m of items){
+    if(m.startsWith('>')) h+='<span class="sel">'+m.replace(/^>\s*/,'')+'</span>'
+    else h+='  '+m+'\n'
+  }
+  if(titulo||items.length) id('tela').innerHTML=h||'[aguardando...]'
 }
 
 async function nv(dir){
+  if(atacando) return
   await api('/cm','POST','cmnd=nav '+dir)
   await atualizar()
 }
 
 async function ir(main,sub){
+  if(atacando) return
   for(var i=0;i<6;i++) await api('/cm','POST','cmnd=nav esc')
   for(var i=0;i<main;i++) await api('/cm','POST','cmnd=nav down')
   await api('/cm','POST','cmnd=nav select')
